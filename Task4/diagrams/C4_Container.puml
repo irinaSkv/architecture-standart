@@ -1,0 +1,36 @@
+@startuml
+title Bank Standart Container Diagram
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person_Ext(user, "Пользователь", "Клиент")
+Person(manager, "Сотрудник отдела депозитов")
+Person(call, "Сотрудник кол-центра")
+System(internet_bank, "Интернет-банк", "Система интернет-банкинга")
+System(site, "Сайт", "Сайт банка Стандарт")
+ContainerQueue(kafka, "Kafka", "Kafka")
+
+Boundary(deposit, deposit containers) {
+  Container("deposit_system", "Процессинг депозитов")
+  ContainerDb("deposit_db", "БД депозитов", "PostgreSQL", "storage")
+}
+System(call_system, "Система кол-центра", "Система управления заявками кол-центра")
+System(abs, "АБС", "Автоматизированная банковская система")
+System(storage, "Хранилище SFTP", "Хранилище SFTP")
+
+Rel(user, internet_bank, "Подает заявку на открытие депозита")
+Rel(user, site, "Подает заявку на открытие депозита")
+Rel(user, call, "Подает заявку через кол-центр")
+Rel(manager, deposit_system, "Управление ставками на депозиты")
+Rel(internet_bank, kafka, "Заявка падает в очередь")
+Rel(site, kafka, "Заявка падает в очередь")
+Rel(call_system, kafka, "Заявка идет в обработку")
+Rel(kafka, abs, "Заявка идет в обработку")
+Rel(abs, deposit_system, "Решение по выдаче депозита")
+Rel(deposit_system, abs, "Решение по выдаче депозита")
+Rel(deposit_system, deposit_db, "Данные по депозитам (ставки, условия и т.д.)")
+Rel(call, call_system, "Отправляет заявку")
+Rel(call, storage, "Запрашивает ставки")
+Rel(deposit_system, storage, "Обновляет файл ставок")
+
+@enduml
